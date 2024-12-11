@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>News Heading - Short News</title> 
+  <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css"> 
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .hdr {
+      background-color: red;
+      color: white;
+      text-align: left;
+      padding: 10px;
+      padding-left: 20px;
+    }
+
+    .hdr h1 {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .hdr sup {
+      font-size: 14px;
+      font-weight: normal;
+    }
+
+    .subhd-nav {
+      display: flex;
+      justify-content: center;
+      background-color: white;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .nav-option {
+      padding: 10px 20px;
+      font-size: 14px;
+      color: red;
+      text-align: center;
+      cursor: pointer;
+      flex: 1;
+      border-bottom: 2px solid transparent;
+    }
+
+    .nav-option.active {
+      border-bottom: 2px solid red;
+      font-weight: bold;
+    }
+
+    .content-section {
+      display: none;
+      height: calc(100vh - 130px);
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    .swiper {
+      height: 100%;
+    }
+
+    .swiper-slide {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      position: relative;
+    }
+
+    .swiper-slide img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+    /* Caption modal styles */
+    .caption-modal {
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 16px;
+      transition: bottom 0.4s ease-in-out;
+      z-index: 1000;
+    }
+
+    .caption-modal.active {
+      bottom: 0;
+    }
+
+    .close-caption {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 8px 16px;
+      background-color: red;
+      color: white;
+      border-radius: 5px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style> 
+ </head> 
+ <body> 
+  <header class="hdr"> 
+   <h1> NEWS HEADING <br><sup>NEWS IN SHORT</sup></h1> 
+  </header> 
+  <div class="subhd-nav"> 
+   <div class="nav-option active" onclick="showContent('headlines')">
+     Headlines 
+   </div> 
+   <div class="nav-option" onclick="showContent('short-stories')">
+     Short Stories 
+   </div> 
+  </div> 
+  <div id="headlines" class="content-section active"> 
+   <div class="swiper" id="headlines-swiper"> 
+    <div class="swiper-wrapper" id="headlinesSwiperWrapper"> <!-- Dynamic Content for Headlines --> 
+    </div> 
+    <div class="swiper-pagination"></div> 
+   </div> 
+  </div> 
+  <div id="short-stories" class="content-section"> 
+   <div class="swiper" id="short-stories-swiper"> 
+    <div class="swiper-wrapper" id="shortStoriesSwiperWrapper"> <!-- Dynamic Content for Short Stories --> 
+    </div> 
+    <div class="swiper-pagination"></div> 
+   </div> 
+  </div> <!-- Caption Modal --> 
+  <div id="caption-modal" class="caption-modal"> 
+   <div id="caption-text"></div> <span class="close-caption" onclick="hideCaption()">Close</span> 
+  </div> 
+  <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script> 
+  <script>
+    let swipers = {};
+
+    // Initialize swiper for specific section
+    function initSwiper(sectionId) {
+      if (swipers[sectionId]) {
+        swipers[sectionId].destroy(true, true);
+      }
+
+      swipers[sectionId] = new Swiper(`#${sectionId} .swiper`, {
+        direction: 'vertical',
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true,
+        },
+        loop: true, // Enable looping for continuous scrolling
+      });
+    }
+
+    window.onload = function () {
+      loadPosts(); // Load posts from localStorage
+      initSwiper('headlines');
+      initSwiper('short-stories');
+    };
+
+    // Load posts from localStorage and categorize them
+    function loadPosts() {
+      const posts = JSON.parse(localStorage.getItem('posts')) || [];
+      const headlinesSwiperWrapper = document.getElementById('headlinesSwiperWrapper');
+      const shortStoriesSwiperWrapper = document.getElementById('shortStoriesSwiperWrapper');
+
+      // Clear existing slides
+      headlinesSwiperWrapper.innerHTML = '';
+      shortStoriesSwiperWrapper.innerHTML = '';
+
+      posts.forEach((post) => {
+        const postItem = document.createElement('div');
+        postItem.classList.add('swiper-slide');
+        postItem.innerHTML = `
+          <img src="${post.image}" alt="Post Image" onclick="showCaption('${post.caption}')">
+        `;
+
+        if (post.category === 'headlines') {
+          headlinesSwiperWrapper.appendChild(postItem);
+        } else if (post.category === 'short-stories') {
+          shortStoriesSwiperWrapper.appendChild(postItem);
+        }
+      });
+
+      // Reinitialize swiper for the new content
+      initSwiper('headlines');
+      initSwiper('short-stories');
+    }
+
+    function showContent(sectionId) {
+      document.querySelectorAll('.nav-option').forEach(option => option.classList.remove('active'));
+      document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+
+      document.querySelector(`.nav-option[onclick="showContent('${sectionId}')"]`).classList.add('active');
+      document.getElementById(sectionId).classList.add('active');
+
+      initSwiper(sectionId);
+    }
+
+    function showCaption(captionText) {
+      document.getElementById('caption-text').innerText = captionText;
+      document.getElementById('caption-modal').classList.add('active');
+    }
+
+    function hideCaption() {
+      document.getElementById('caption-modal').classList.remove('active');
+    }
+  </script> 
+ 
+</body></html>
