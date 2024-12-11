@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>CMS Panel</title> 
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form,
+        .post-list {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+
+        .post-item {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+
+        .post-item img {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .post-actions button {
+            background-color: #007bff;
+            color: white;
+            margin-right: 10px;
+            cursor: pointer;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+
+        .post-actions button.delete {
+            background-color: #dc3545;
+        }
+    </style> 
+ </head> 
+ <body> 
+  <h2>Upload Post</h2> 
+  <form id="uploadForm"> 
+   <input type="file" id="imageInput" accept="image/*" required> 
+   <input type="text" id="captionInput" placeholder="Enter Caption" required> <select id="categoryInput" required> <option value="headlines">Headlines</option> <option value="short-stories">Short Stories</option> </select> <button type="submit">Upload</button> 
+  </form> 
+  <h2>Manage Posts</h2> 
+  <div class="post-list" id="postList"></div> 
+  <script>
+        // Save a post and load it dynamically
+        function savePost(event) {
+            event.preventDefault();
+
+            const imageFile = document.getElementById('imageInput').files[0];
+            const caption = document.getElementById('captionInput').value.trim();
+            const category = document.getElementById('categoryInput').value;
+
+            if (!imageFile || !caption) {
+                alert('Please provide an image and a caption.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const posts = JSON.parse(localStorage.getItem('posts')) || [];
+                posts.push({
+                    image: e.target.result,
+                    caption: caption,
+                    category: category
+                });
+                localStorage.setItem('posts', JSON.stringify(posts));
+
+                alert('Post uploaded successfully!');
+                document.getElementById('uploadForm').reset();
+                loadPosts();
+            };
+
+            reader.onerror = function () {
+                alert('Error loading image. Please try again.');
+            };
+
+            reader.readAsDataURL(imageFile);
+        }
+
+        // Load posts from local storage
+        function loadPosts() {
+            const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            const postList = document.getElementById('postList');
+            postList.innerHTML = '';
+
+            posts.forEach((post, index) => {
+                const postItem = document.createElement('div');
+                postItem.classList.add('post-item');
+                postItem.innerHTML = `
+                <img src="${post.image}" alt="Post Image">
+                <p><strong>Caption:</strong> ${post.caption}</p>
+                <p><strong>Category:</strong> ${post.category}</p>
+                <div class="post-actions">
+                    <button onclick="editPost(${index})">Edit</button>
+                    <button class="delete" onclick="deletePost(${index})">Delete</button>
+                </div>`;
+                postList.appendChild(postItem);
+            });
+        }
+
+        // Delete a specific post
+        function deletePost(index) {
+            const posts = JSON.parse(localStorage.getItem('posts'));
+            posts.splice(index, 1);
+            localStorage.setItem('posts', JSON.stringify(posts));
+            alert('Post deleted successfully!');
+            loadPosts();
+        }
+
+        // Initialize the page and attach event listeners
+        window.onload = function () {
+            loadPosts();
+            document.getElementById('uploadForm').addEventListener('submit', savePost);
+        };
+    </script> 
+ 
+</body></html>
