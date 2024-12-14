@@ -69,10 +69,10 @@
  </head> 
  <body> 
   <script>
-      // Check if the user is logged in
+      // Login check: Agar localStorage mein isLoggedIn true nahi hai to login page par redirect karo
       if (localStorage.getItem('isLoggedIn') !== 'true') {
-          alert("You must log in to access the CMS panel.");
-          window.location.href = "admin.html"; // Redirect to login page
+          alert("Unauthorized access! Please log in first.");
+          window.location.href = "admin.html"; // Login page par redirect karo
       }
   </script>
   <h2>Upload Post</h2> 
