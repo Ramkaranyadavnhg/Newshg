@@ -3,63 +3,159 @@
  <head> 
   <meta charset="UTF-8"> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <title>Admin Login</title> 
+  <title>CMS Panel</title> 
   <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            background-color: #f4f4f4;
+            padding: 20px;
         }
-        .login-form {
+
+        h2 {
+            color: #333;
+        }
+
+        form,
+        .post-list {
             background-color: white;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            margin-bottom: 20px;
         }
-        input {
+
+        input,
+        select,
+        button {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+
         button {
-            padding: 10px 20px;
-            background-color: red;
+            background-color: #28a745;
             color: white;
-            border: none;
-            border-radius: 5px;
             cursor: pointer;
         }
-        button:hover {
-            background-color: darkred;
+
+        .post-item {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+
+        .post-item img {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .post-actions button {
+            background-color: #007bff;
+            color: white;
+            margin-right: 10px;
+            cursor: pointer;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+
+        .post-actions button.delete {
+            background-color: #dc3545;
         }
     </style> 
  </head> 
  <body> 
-  <div class="login-form"> 
-   <h2>Admin Login</h2> 
-   <input type="text" id="username" placeholder="Username" required> 
-   <input type="password" id="password" placeholder="Password" required> <button onclick="login()">Login</button> 
-  </div> 
   <script>
-    function login() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+      // Check if the user is logged in
+      if (localStorage.getItem('isLoggedIn') !== 'true') {
+          alert("You must log in to access the CMS panel.");
+          window.location.href = "index.html"; // Redirect to login page
+      }
+  </script>
+  <h2>Upload Post</h2> 
+  <form id="uploadForm"> 
+   <input type="file" id="imageInput" accept="image/*" required> 
+   <input type="text" id="captionInput" placeholder="Enter Caption" required> 
+   <select id="categoryInput" required>
+      <option value="headlines">Headlines</option>
+      <option value="short-stories">Short Stories</option> 
+   </select>
+   <button type="submit">Upload</button>
+  </form> 
+  <button onclick="logout()">Logout</button> 
+  <h2>Manage Posts</h2> 
+  <div class="post-list" id="postList"></div> 
+  <script>
+        // Save a post and load it dynamically
+        function savePost(event) {
+            event.preventDefault();
 
-        if (username === "admin" && password === "password") {
-            // Save session flag in localStorage
-            localStorage.setItem('isLoggedIn', 'true');
-            window.location.href = "cms.html"; // Redirect to CMS panel
-        } else {
-            alert("Invalid credentials");
+            const imageFile = document.getElementById('imageInput').files[0];
+            const caption = document.getElementById('captionInput').value.trim();
+            const category = document.getElementById('categoryInput').value;
+
+            if (!imageFile || !caption) {
+                alert('Please provide an image and a caption.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const posts = JSON.parse(localStorage.getItem('posts')) || [];
+                posts.push({
+                    image: e.target.result,
+                    caption: caption,
+                    category: category
+                });
+                localStorage.setItem('posts', JSON.stringify(posts));
+
+                alert('Post uploaded successfully!');
+                document.getElementById('uploadForm').reset();
+                loadPosts();
+            };
+
+            reader.onerror = function () {
+                alert('Error loading image. Please try again.');
+            };
+
+            reader.readAsDataURL(imageFile);
         }
-    }
-  </script> 
- 
-</body></html>
+
+        // Load posts from local storage
+        function loadPosts() {
+            const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            const postList = document.getElementById('postList');
+            postList.innerHTML = '';
+
+            posts.forEach((post, index) => {
+                const postItem = document.createElement('div');
+                postItem.classList.add('post-item');
+                postItem.innerHTML = `
+                <img src="${post.image}" alt="Post Image">
+                <p><strong>Caption:</strong> ${post.caption}</p>
+                <p><strong>Category:</strong> ${post.category}</p>
+                <div class="post-actions">
+                    <button onclick="editPost(${index})">Edit</button>
+                    <button class="delete" onclick="deletePost(${index})">Delete</button>
+                </div>`;
+                postList.appendChild(postItem);
+            });
+        }
+
+        // Logout functionality
+        function logout() {
+            localStorage.removeItem('isLoggedIn'); // Clear session flag
+            window.location.href = "index.html"; // Redirect to login page
+        }
+
+        // Initialize the page
+        window.onload = function () {
+            loadPosts();
+            document.getElementById('uploadForm').addEventListener('submit', savePost);
+        };
+  </script>
+ </body>
+</html>
