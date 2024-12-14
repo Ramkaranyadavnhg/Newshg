@@ -45,21 +45,23 @@
   <div class="login-form"> 
    <h2>Admin Login</h2> 
    <input type="text" id="username" placeholder="Username" required> 
-   <input type="password" id="password" placeholder="Password" required> <button onclick="login()">Login</button> 
+   <input type="password" id="password" placeholder="Password" required> 
+   <button onclick="login()">Login</button> 
   </div> 
   <script>
     function login() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
 
+        // Hardcoded credentials
         if (username === "admin" && password === "password") {
-            // Save session flag in localStorage
+            // Set a flag in localStorage to indicate logged-in status
             localStorage.setItem('isLoggedIn', 'true');
             window.location.href = "cms.html"; // Redirect to CMS panel
         } else {
-            alert("Invalid credentials");
+            alert("Invalid username or password");
         }
     }
   </script> 
- 
-</body></html>
+ </body>
+</html>
